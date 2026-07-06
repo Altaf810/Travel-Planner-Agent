@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}TravelMind AI{% endblock %} — IBM Watsonx Powered</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Leaflet.js CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ─── Navbar ──────────────────────────────────────────────────────────────── -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top tm-navbar" id="mainNavbar">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <span class="tm-logo-icon"><i class="bi bi-airplane-fill"></i></span>
+      <span class="fw-bold">TravelMind <span class="text-warning">AI</span></span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-center gap-1">
+        <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house-door me-1"></i>Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="/planner"><i class="bi bi-map me-1"></i>Plan Trip</a></li>
+        <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-grid-1x2 me-1"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/chat"><i class="bi bi-chat-dots me-1"></i>AI Chat</a></li>
+        <li class="nav-item ms-2">
+          <button class="btn btn-sm tm-dark-toggle rounded-pill px-3" id="darkModeToggle" title="Toggle dark mode">
+            <i class="bi bi-moon-stars-fill"></i>
+          </button>
+        </li>
+        <li class="nav-item ms-2">
+          <a href="/planner" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-plus-circle me-1"></i>New Trip
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Flash messages ──────────────────────────────────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ─── Main content ─────────────────────────────────────────────────────────── -->
+{% block content %}{% endblock %}
+
+<!-- ─── Footer ──────────────────────────────────────────────────────────────── -->
+<footer class="tm-footer mt-5 py-4">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="tm-logo-icon small"><i class="bi bi-airplane-fill"></i></span>
+          <span class="fw-bold fs-5">TravelMind <span class="text-warning">AI</span></span>
+        </div>
+        <p class="text-muted small">AI-powered travel planning using IBM Granite on Watsonx.ai. Plan smarter, travel better.</p>
+        <div class="d-flex gap-2 mt-3">
+          <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill px-3 py-2">
+            <i class="bi bi-cpu me-1"></i>IBM Granite
+          </span>
+          <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-3 py-2">
+            <i class="bi bi-cloud me-1"></i>Watsonx.ai
+          </span>
+        </div>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6 class="fw-semibold mb-3">Navigate</h6>
+        <ul class="list-unstyled small">
+          <li class="mb-2"><a href="/" class="text-muted text-decoration-none tm-footer-link"><i class="bi bi-house me-1"></i>Home</a></li>
+          <li class="mb-2"><a href="/planner" class="text-muted text-decoration-none tm-footer-link"><i class="bi bi-map me-1"></i>Plan Trip</a></li>
+          <li class="mb-2"><a href="/dashboard" class="text-muted text-decoration-none tm-footer-link"><i class="bi bi-grid me-1"></i>Dashboard</a></li>
+          <li class="mb-2"><a href="/chat" class="text-muted text-decoration-none tm-footer-link"><i class="bi bi-chat me-1"></i>AI Chat</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-6">
+        <h6 class="fw-semibold mb-3">Features</h6>
+        <ul class="list-unstyled small text-muted">
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-1"></i>Smart Itinerary</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-1"></i>Budget Planner</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-1"></i>AI Chat Assistant</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-1"></i>Interactive Maps</li>
+        </ul>
+      </div>
+      <div class="col-lg-3">
+        <h6 class="fw-semibold mb-3">Powered By</h6>
+        <div class="tm-powered-card p-3 rounded-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-cpu-fill text-primary fs-5"></i>
+            <div>
+              <div class="small fw-semibold">IBM Granite</div>
+              <div class="text-muted" style="font-size:11px">Foundation Model</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-cloud-fill text-info fs-5"></i>
+            <div>
+              <div class="small fw-semibold">IBM Watsonx.ai</div>
+              <div class="text-muted" style="font-size:11px">AI Platform</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr class="my-3 opacity-25">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <p class="text-muted small mb-0">&copy; 2025 TravelMind AI. Built with ❤️ using IBM Granite &amp; Watsonx.ai</p>
+      <p class="text-muted small mb-0">Python Flask &bull; Bootstrap 5 &bull; Leaflet.js</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Scripts ──────────────────────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Marked.js for markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

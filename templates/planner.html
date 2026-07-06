@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% block title %}Plan Your Trip{% endblock %}
+
+{% block extra_css %}
+<style>
+  .tm-step-indicator .step { opacity: 0.4; transition: opacity 0.3s; }
+  .tm-step-indicator .step.active { opacity: 1; }
+  .tm-step-indicator .step.done { opacity: 0.7; }
+  .interests-grid label { cursor: pointer; }
+  .interests-grid input:checked + span { background-color: var(--bs-primary); color: white; border-color: var(--bs-primary); }
+  .interests-grid span { border: 2px solid var(--bs-border-color); border-radius: 50px; padding: 6px 14px; font-size: 13px; display: block; transition: all .2s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Header -->
+  <div class="text-center mb-5">
+    <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill px-4 py-2 mb-3">
+      <i class="bi bi-stars me-1"></i>IBM Granite AI
+    </span>
+    <h1 class="fw-bold">Plan Your Dream Trip</h1>
+    <p class="text-muted lead">Fill in your preferences and let IBM Granite AI create your perfect travel plan</p>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="tm-step-indicator d-flex justify-content-center gap-3 mb-5">
+    {% for i, label in [(1,'Basics'),(2,'Preferences'),(3,'Interests'),(4,'Generate')] %}
+    <div class="step d-flex flex-column align-items-center" id="step-ind-{{ i }}">
+      <div class="tm-step-num rounded-circle d-flex align-items-center justify-content-center fw-bold mb-1" id="sn-{{ i }}">{{ i }}</div>
+      <small class="text-muted">{{ label }}</small>
+    </div>
+    {% endfor %}
+  </div>
+
+  <form id="plannerForm">
+    <!-- ── Step 1: Basics ───────────────────────────────────────────────────── -->
+    <div class="tm-form-step" id="step-1">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <h4 class="fw-bold mb-4"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Trip Basics</h4>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Source Location <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-house-door-fill"></i></span>
+                <input type="text" name="source" class="form-control form-control-lg" placeholder="e.g. Mumbai, India" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Destination <span class="text-muted fw-normal">(optional)</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-fill"></i></span>
+                <input type="text" name="destination" class="form-control form-control-lg" placeholder="Leave blank — AI will suggest destinations">
+              </div>
+              <div class="form-text"><i class="bi bi-stars text-warning"></i> Leave empty to get AI-powered destination recommendations</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Number of Travelers <span class="text-danger">*</span></label>
+              <input type="number" name="travelers" class="form-control form-control-lg" value="2" min="1" max="50" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Travel Start Date <span class="text-danger">*</span></label>
+              <input type="date" name="start_date" class="form-control form-control-lg" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Trip Duration (Days) <span class="text-danger">*</span></label>
+              <input type="number" name="duration" class="form-control form-control-lg" value="5" min="1" max="60" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Budget <span class="text-danger">*</span></label>
+              <select name="budget" class="form-select form-select-lg" required>
+                <option value="">Select budget range</option>
+                <option value="Budget (₹5,000–₹15,000 per person)">Budget (₹5,000–₹15,000 per person)</option>
+                <option value="Economy (₹15,000–₹30,000 per person)" selected>Economy (₹15,000–₹30,000 per person)</option>
+                <option value="Mid-Range (₹30,000–₹70,000 per person)">Mid-Range (₹30,000–₹70,000 per person)</option>
+                <option value="Comfort (₹70,000–₹1,50,000 per person)">Comfort (₹70,000–₹1,50,000 per person)</option>
+                <option value="Luxury (₹1,50,000+ per person)">Luxury (₹1,50,000+ per person)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Travel Purpose <span class="text-danger">*</span></label>
+              <select name="purpose" class="form-select form-select-lg" required>
+                <option value="Vacation" selected>🏖️ Vacation / Leisure</option>
+                <option value="Family">👨‍👩‍👧‍👦 Family Trip</option>
+                <option value="Business">💼 Business Travel</option>
+                <option value="Adventure">🧗 Adventure & Sports</option>
+                <option value="Honeymoon">💑 Honeymoon / Romantic</option>
+                <option value="Solo">🧳 Solo Travel</option>
+                <option value="Cultural">🏛️ Cultural Exploration</option>
+                <option value="Pilgrimage">🙏 Pilgrimage / Religious</option>
+                <option value="Medical">🏥 Medical Tourism</option>
+              </select>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end mt-4">
+            <button type="button" class="btn btn-primary btn-lg rounded-pill px-5" onclick="nextStep(1)">
+              Next <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Step 2: Preferences ──────────────────────────────────────────────── -->
+    <div class="tm-form-step d-none" id="step-2">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <h4 class="fw-bold mb-4"><i class="bi bi-sliders text-success me-2"></i>Travel Preferences</h4>
+          <div class="row g-4">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Preferred Transportation</label>
+              <select name="transport" class="form-select form-select-lg">
+                <option value="Any">🚌 Any (AI Decides)</option>
+                <option value="Flight">✈️ Flight</option>
+                <option value="Train">🚂 Train</option>
+                <option value="Bus">🚌 Bus</option>
+                <option value="Car / Self-Drive">🚗 Car / Self-Drive</option>
+                <option value="Cruise">🚢 Cruise</option>
+                <option value="Motorcycle">🏍️ Motorcycle</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Accommodation Type</label>
+              <select name="accommodation" class="form-select form-select-lg">
+                <option value="Hotel" selected>🏨 Hotel</option>
+                <option value="Resort">🌴 Resort</option>
+                <option value="Hostel">🛏️ Hostel / Dorm</option>
+                <option value="Homestay">🏡 Homestay / B&B</option>
+                <option value="Airbnb">🔑 Airbnb / Apartment</option>
+                <option value="Glamping">⛺ Glamping / Camping</option>
+                <option value="Heritage Hotel">🏰 Heritage Hotel</option>
+                <option value="Any">✨ Any (AI Suggests)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Food Preference</label>
+              <select name="food_pref" class="form-select form-select-lg">
+                <option value="Any" selected>🍽️ Any Cuisine</option>
+                <option value="Vegetarian">🥗 Vegetarian</option>
+                <option value="Vegan">🌱 Vegan</option>
+                <option value="Non-Vegetarian">🍖 Non-Vegetarian</option>
+                <option value="Jain">🙏 Jain</option>
+                <option value="Halal">☪️ Halal</option>
+                <option value="Street Food Lover">🌮 Street Food Lover</option>
+                <option value="Fine Dining">🍷 Fine Dining</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Weather / Climate Preference</label>
+              <select name="weather_pref" class="form-select form-select-lg">
+                <option value="Mild / Pleasant" selected>🌤️ Mild / Pleasant</option>
+                <option value="Tropical / Hot & Humid">🌴 Tropical / Hot & Humid</option>
+                <option value="Cold / Snow">❄️ Cold / Snow</option>
+                <option value="Dry / Desert">☀️ Dry / Desert</option>
+                <option value="Monsoon / Rainy">🌧️ Monsoon / Rainy</option>
+                <option value="Spring / Blooms">🌸 Spring / Blooms</option>
+                <option value="No Preference">🌍 No Preference</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Special Requirements</label>
+              <input type="text" name="special" class="form-control form-control-lg" placeholder="e.g. wheelchair accessible, infant-friendly, pet-friendly...">
+            </div>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill px-4" onclick="prevStep(2)">
+              <i class="bi bi-arrow-left me-2"></i>Back
+            </button>
+            <button type="button" class="btn btn-primary btn-lg rounded-pill px-5" onclick="nextStep(2)">
+              Next <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Interests ────────────────────────────────────────────────── -->
+    <div class="tm-form-step d-none" id="step-3">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <h4 class="fw-bold mb-2"><i class="bi bi-heart-fill text-danger me-2"></i>Your Interests</h4>
+          <p class="text-muted mb-4">Select all that apply — AI will tailor your plan accordingly</p>
+          <div class="interests-grid d-flex flex-wrap gap-2">
+            {% set interests = ["🏖️ Beaches","🏔️ Mountains","🦁 Wildlife & Safari","🏛️ Historical Places","🛍️ Shopping","🌃 Nightlife","⛪ Religious Sites","🥾 Trekking & Hiking","🎨 Art & Culture","🍜 Food & Culinary","🎭 Festivals & Events","🌊 Water Sports","🎿 Winter Sports","🧘 Yoga & Wellness","📸 Photography","🏞️ Nature & Parks","🚴 Cycling","🏄 Surfing","🎪 Theme Parks","🍷 Wine & Vineyards","🏊 Swimming & Pools","🎵 Live Music","🎲 Casinos & Entertainment","🌋 Volcanoes & Geology"] %}
+            {% for interest in interests %}
+            <label class="interests-grid">
+              <input type="checkbox" name="interests" value="{{ interest }}" class="d-none">
+              <span>{{ interest }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          <div class="d-flex justify-content-between mt-5">
+            <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill px-4" onclick="prevStep(3)">
+              <i class="bi bi-arrow-left me-2"></i>Back
+            </button>
+            <button type="button" class="btn btn-primary btn-lg rounded-pill px-5" onclick="nextStep(3)">
+              Next <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Step 4: Generate ─────────────────────────────────────────────────── -->
+    <div class="tm-form-step d-none" id="step-4">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <h4 class="fw-bold mb-4"><i class="bi bi-stars text-warning me-2"></i>Generate Your Travel Plan</h4>
+
+          <!-- Summary -->
+          <div class="tm-summary-card rounded-4 p-4 mb-4" id="tripSummary"></div>
+
+          <!-- Section selector -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">What would you like to generate?</label>
+            <div class="row g-2" id="sectionSelector">
+              {% for val, label, icon in [
+                ("full_plan","Complete Travel Plan","stars"),
+                ("destinations","Destination Suggestions","geo-alt"),
+                ("itinerary","Day-wise Itinerary","calendar3"),
+                ("budget","Budget Breakdown","cash-coin"),
+                ("accommodation","Accommodation Picks","building"),
+                ("transport","Transport Options","airplane"),
+                ("packing","Packing Checklist","bag-check"),
+                ("local_guide","Local Guide","compass"),
+                ("travel_tips","Travel Tips & Alerts","info-circle"),
+              ] %}
+              <div class="col-md-4 col-6">
+                <label class="w-100">
+                  <input type="checkbox" name="sections" value="{{ val }}" class="btn-check" {{ 'checked' if val == 'full_plan' else '' }}>
+                  <span class="btn btn-outline-secondary w-100 text-start rounded-3">
+                    <i class="bi bi-{{ icon }} me-2 text-primary"></i>{{ label }}
+                  </span>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill px-4" onclick="prevStep(4)">
+              <i class="bi bi-arrow-left me-2"></i>Back
+            </button>
+            <button type="submit" class="btn btn-warning btn-lg rounded-pill px-5 fw-bold" id="generateBtn">
+              <i class="bi bi-stars me-2"></i>Generate with IBM Granite AI
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- ─── Loading ──────────────────────────────────────────────────────────── -->
+  <div id="loadingSection" class="d-none text-center py-5">
+    <div class="tm-ai-loading mx-auto mb-4">
+      <div class="spinner-border text-primary" style="width:4rem;height:4rem;" role="status"></div>
+      <div class="tm-ai-pulse mt-3"><i class="bi bi-cpu-fill fs-1 text-primary"></i></div>
+    </div>
+    <h4 class="fw-bold">IBM Granite AI is crafting your travel plan...</h4>
+    <p class="text-muted" id="loadingMsg">Analyzing your preferences and generating personalized recommendations</p>
+    <div class="progress mt-3 mx-auto" style="max-width:400px;height:6px">
+      <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width:100%"></div>
+    </div>
+  </div>
+
+  <!-- ─── Results ──────────────────────────────────────────────────────────── -->
+  <div id="resultsSection" class="d-none mt-5">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Your AI-Generated Travel Plan</h2>
+        <p class="text-muted mb-0">Generated by IBM Granite on Watsonx.ai</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary rounded-pill" onclick="printPlan()"><i class="bi bi-printer me-1"></i>Print</button>
+        <button class="btn btn-outline-primary rounded-pill" onclick="location.reload()"><i class="bi bi-plus me-1"></i>New Plan</button>
+        <a href="/dashboard" class="btn btn-primary rounded-pill"><i class="bi bi-grid me-1"></i>Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" id="mapCard">
+      <div class="card-header border-0 bg-transparent pt-4 px-4">
+        <h5 class="fw-bold mb-0"><i class="bi bi-map-fill text-primary me-2"></i>Interactive Destination Map</h5>
+      </div>
+      <div class="card-body p-4">
+        <div id="resultMap" style="height:400px;border-radius:12px;"></div>
+      </div>
+    </div>
+
+    <!-- Results tabs -->
+    <ul class="nav nav-tabs rounded-top-3 mb-0 border-bottom-0" id="resultsTabs">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-main"><i class="bi bi-file-text me-1"></i>Plan</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-budget"><i class="bi bi-cash me-1"></i>Budget</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-stays"><i class="bi bi-building me-1"></i>Stays</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-transport"><i class="bi bi-airplane me-1"></i>Transport</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-guide"><i class="bi bi-compass me-1"></i>Guide</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-packing"><i class="bi bi-bag me-1"></i>Packing</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tips"><i class="bi bi-lightbulb me-1"></i>Tips</button></li>
+    </ul>
+    <div class="tab-content border border-top-0 rounded-bottom-3 p-4 p-lg-5 bg-body shadow-sm" id="resultsTabContent">
+      <div class="tab-pane fade show active" id="tab-main"><div id="content-main" class="tm-ai-content"></div></div>
+      <div class="tab-pane fade" id="tab-budget"><div id="content-budget" class="tm-ai-content"></div></div>
+      <div class="tab-pane fade" id="tab-stays"><div id="content-stays" class="tm-ai-content"></div></div>
+      <div class="tab-pane fade" id="tab-transport"><div id="content-transport" class="tm-ai-content"></div></div>
+      <div class="tab-pane fade" id="tab-guide"><div id="content-guide" class="tm-ai-content"></div></div>
+      <div class="tab-pane fade" id="tab-packing"><div id="content-packing" class="tm-ai-content"></div></div>
+      <div class="tab-pane fade" id="tab-tips"><div id="content-tips" class="tm-ai-content"></div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/planner.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

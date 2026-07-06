@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Itinerary{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5">
+    <div>
+      <h1 class="fw-bold mb-1">Trip Itinerary</h1>
+      <p class="text-muted mb-0">Your day-wise AI-generated travel plan</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-printer me-1"></i>Print</button>
+      <a href="/planner" class="btn btn-primary rounded-pill"><i class="bi bi-plus me-1"></i>New Plan</a>
+    </div>
+  </div>
+
+  <!-- Quick generate from here -->
+  <div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-body p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-stars text-warning me-2"></i>Generate Itinerary</h5>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <input type="text" id="it_dest" class="form-control" placeholder="Destination (e.g. Goa)">
+        </div>
+        <div class="col-md-3">
+          <input type="text" id="it_source" class="form-control" placeholder="From (e.g. Mumbai)">
+        </div>
+        <div class="col-md-2">
+          <input type="number" id="it_days" class="form-control" placeholder="Days" value="5" min="1" max="30">
+        </div>
+        <div class="col-md-2">
+          <select id="it_budget" class="form-select">
+            <option>Budget</option>
+            <option selected>Economy</option>
+            <option>Mid-Range</option>
+            <option>Luxury</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100 rounded-3" onclick="generateItinerary()">
+            <i class="bi bi-stars me-1"></i>Generate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="itLoadingSection" class="d-none text-center py-5">
+    <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;"></div>
+    <h5>IBM Granite is building your itinerary...</h5>
+  </div>
+
+  <!-- Sample itinerary placeholder -->
+  <div id="itResultSection">
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-calendar3 display-1 opacity-25 d-block mb-4"></i>
+      <h4>No Itinerary Yet</h4>
+      <p>Fill in the form above and click Generate, or <a href="/planner">use the full planner</a>.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function generateItinerary() {
+  const dest = document.getElementById('it_dest').value.trim();
+  const src = document.getElementById('it_source').value.trim();
+  const days = document.getElementById('it_days').value;
+  const budget = document.getElementById('it_budget').value;
+  if (!dest) { alert('Please enter a destination'); return; }
+  document.getElementById('itLoadingSection').classList.remove('d-none');
+  document.getElementById('itResultSection').classList.add('d-none');
+  try {
+    const res = await fetch('/api/itinerary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destination: dest, source: src, duration: parseInt(days), budget: budget, travelers: 2, interests: [] })
+    });
+    const data = await res.json();
+    document.getElementById('itLoadingSection').classList.add('d-none');
+    document.getElementById('itResultSection').classList.remove('d-none');
+    if (data.success) {
+      document.getElementById('itResultSection').innerHTML = `<div class="card border-0 shadow-sm rounded-4"><div class="card-body p-4 tm-ai-content">${marked.parse(data.result)}</div></div>`;
+    } else {
+      document.getElementById('itResultSection').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+    }
+  } catch(e) {
+    document.getElementById('itLoadingSection').classList.add('d-none');
+    document.getElementById('itResultSection').innerHTML = `<div class="alert alert-danger">Failed to connect to server.</div>`;
+  }
+}
+</script>
+{% endblock %}
